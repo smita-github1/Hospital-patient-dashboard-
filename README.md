@@ -66,16 +66,16 @@ They balance clinical relevance (age, comorbidities, lab values) with predictive
 
 They allow different stakeholders (clinicians, analysts, consultants) to explore data at both summary and detailed levels.
 
+They highlight risk thresholds (e.g., EF < 30%, creatinine > 2.0, sodium < 135) that are actionable in real-world healthcare settings.
 
+Middle row (Charts): Survival curve, age distribution, comorbidity bar chart.
 
+Bottom row (Advanced): Correlation heatmap, scatter matrix for multivariate risk exploration.
 
 
 
 file:///C:/Users/SMITA%20VERMA/Downloads/dashboard%20(1).html
 
 
-They highlight risk thresholds (e.g., EF < 30%, creatinine > 2.0, sodium < 135) that are actionable in real-world healthcare settings.
 
-Middle row (Charts): Survival curve, age distribution, comorbidity bar chart.
 
-Bottom row (Advanced): Correlation heatmap, scatter matrix for multivariate risk exploration.
