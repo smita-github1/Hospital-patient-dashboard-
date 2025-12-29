@@ -1,0 +1,103 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Hospital Patient Dashboard</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    body { font-family: Arial; margin: 20px; }
+    .kpi { display: inline-block; width: 23%; text-align: center; margin-bottom: 20px; background: #f0f0f0; padding: 10px; border-radius: 8px; }
+    .chart { margin-top: 30px; }
+  </style>
+</head>
+<body>
+  <h2>📊 Hospital Patient Dashboard</h2>
+  <input type="file" id="fileInput" accept=".json" />
+  <div id="kpis"></div>
+  <div id="charts">
+    <div id="survival" class="chart"></div>
+    <div id="ageDist" class="chart"></div>
+    <div id="comorbidity" class="chart"></div>
+    <div id="heatmap" class="chart"></div>
+  </div>
+
+  <script>
+    document.getElementById('fileInput').addEventListener('change', function (e) {
+      const reader = new FileReader();
+      reader.onload = function () {
+        const data = JSON.parse(reader.result);
+        renderDashboard(data);
+      };
+      reader.readAsText(e.target.files[0]);
+    });
+
+    function renderDashboard(data) {
+      const deathEvents = data.map(d => d.DEATH_EVENT);
+      const age = data.map(d => d.age);
+      const ef = data.map(d => d.ejection_fraction);
+      const creatinine = data.map(d => d.serum_creatinine);
+
+      const mortalityRate = (deathEvents.filter(d => d === 1).length / deathEvents.length * 100).toFixed(1);
+      const avgAge = (age.reduce((a, b) => a + b) / age.length).toFixed(1);
+      const avgEF = (ef.reduce((a, b) => a + b) / ef.length).toFixed(1);
+      const medianCreatinine = creatinine.sort((a, b) => a - b)[Math.floor(creatinine.length / 2)].toFixed(2);
+
+      document.getElementById('kpis').innerHTML = `
+        <div class="kpi"><strong>${mortalityRate}%</strong><br>Mortality Rate</div>
+        <div class="kpi"><strong>${avgAge}</strong><br>Average Age</div>
+        <div class="kpi"><strong>${avgEF}%</strong><br>Avg Ejection Fraction</div>
+        <div class="kpi"><strong>${medianCreatinine}</strong> mg/dL<br>Median Creatinine</div>
+      `;
+
+      // Survival Curve
+      const survivalData = {
+        x: data.map(d => d.time),
+        y: deathEvents.map((d, i) => 1 - deathEvents.slice(0, i + 1).filter(x => x === 1).length / (i + 1)),
+        type: 'scatter',
+        mode: 'lines',
+        name: 'Survival Probability'
+      };
+      Plotly.newPlot('survival', [survivalData], { title: 'Survival Curve', xaxis: { title: 'Time (days)' }, yaxis: { title: 'Survival Probability' } });
+
+      // Age Distribution
+      Plotly.newPlot('ageDist', [{
+        x: age,
+        type: 'histogram',
+        marker: { color: 'steelblue' }
+      }], { title: 'Age Distribution', xaxis: { title: 'Age' }, yaxis: { title: 'Count' } });
+
+      // Comorbidity Bar Chart
+      const comorbidities = ['anaemia', 'diabetes', 'high_blood_pressure', 'smoking'];
+      const counts0 = comorbidities.map(key => data.filter(d => d[key] === 0).length);
+      const counts1 = comorbidities.map(key => data.filter(d => d[key] === 1).length);
+      Plotly.newPlot('comorbidity', [
+        { x: comorbidities, y: counts0, name: 'Absent', type: 'bar' },
+        { x: comorbidities, y: counts1, name: 'Present', type: 'bar' }
+      ], { barmode: 'stack', title: 'Comorbidity Distribution' });
+
+      // Correlation Heatmap
+      const numericKeys = ['age', 'ejection_fraction', 'serum_creatinine', 'serum_sodium', 'platelets', 'DEATH_EVENT'];
+      const matrix = numericKeys.map(row =>
+        numericKeys.map(col => {
+          const x = data.map(d => d[row]);
+          const y = data.map(d => d[col]);
+          const meanX = x.reduce((a, b) => a + b) / x.length;
+          const meanY = y.reduce((a, b) => a + b) / y.length;
+          const cov = x.map((xi, i) => (xi - meanX) * (y[i] - meanY)).reduce((a, b) => a + b);
+          const stdX = Math.sqrt(x.map(xi => (xi - meanX) ** 2).reduce((a, b) => a + b));
+          const stdY = Math.sqrt(y.map(yi => (yi - meanY) ** 2).reduce((a, b) => a + b));
+          return (cov / (stdX * stdY)).toFixed(2);
+        })
+      );
+      Plotly.newPlot('heatmap', [{
+        z: matrix,
+        x: numericKeys,
+        y: numericKeys,
+        type: 'heatmap',
+        colorscale: 'YlOrBr'
+      }], { title: 'Correlation Heatmap' });
+    }
+  </script>
+</body>
+</html>

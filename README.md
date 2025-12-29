@@ -71,11 +71,3 @@ They highlight risk thresholds (e.g., EF < 30%, creatinine > 2.0, sodium < 135) 
 Middle row (Charts): Survival curve, age distribution, comorbidity bar chart.
 
 Bottom row (Advanced): Correlation heatmap, scatter matrix for multivariate risk exploration.
-
-
-
-file:///C:/Users/SMITA%20VERMA/Downloads/dashboard%20(1).html
-
-
-
-
